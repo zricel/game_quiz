@@ -1,17 +1,24 @@
 // Branching story editor. Loads a book object, lets the user edit scene metadata
-// and choices, and emits save events back to the app controller.
+// and choices, and emits change events back to the app controller.
 window.Editor = (function () {
   let book = null;
   let activeSceneId = null;
+  let dirty = false;
   let onChangeCb = null;
+  let onSaveRequestCb = null;
 
   const els = {};
 
   function init(callbacks) {
     onChangeCb = callbacks.onChange || (() => {});
+    onSaveRequestCb = callbacks.onSaveRequest || (() => {});
+
     els.title = document.getElementById("book-title");
     els.author = document.getElementById("book-author");
+    els.cover = document.getElementById("book-cover");
+    els.dirtyFlag = document.getElementById("dirty-flag");
     els.sceneListUl = document.getElementById("scene-list-ul");
+    els.unreachableHint = document.getElementById("unreachable-hint");
     els.sceneId = document.getElementById("scene-id");
     els.sceneTitle = document.getElementById("scene-title");
     els.sceneText = document.getElementById("scene-text");
@@ -20,6 +27,7 @@ window.Editor = (function () {
 
     els.title.addEventListener("input", () => { book.title = els.title.value; markDirty(); });
     els.author.addEventListener("input", () => { book.author = els.author.value; markDirty(); });
+    els.cover.addEventListener("change", () => { book.cover = els.cover.value; markDirty(); });
 
     document.getElementById("add-scene-btn").addEventListener("click", addScene);
     document.getElementById("add-choice-btn").addEventListener("click", addChoice);
@@ -28,11 +36,30 @@ window.Editor = (function () {
     els.sceneTitle.addEventListener("input", onSceneFieldInput);
     els.sceneText.addEventListener("input", onSceneFieldInput);
     els.sceneStart.addEventListener("change", onStartToggle);
+
+    // Ctrl/Cmd+S → request save (only when editor is visible).
+    document.addEventListener("keydown", (e) => {
+      const editorVisible = !document.getElementById("view-editor").classList.contains("hidden");
+      if (!editorVisible) return;
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === "s") {
+        e.preventDefault();
+        onSaveRequestCb();
+      }
+    });
   }
 
   function markDirty() {
+    dirty = true;
+    if (els.dirtyFlag) els.dirtyFlag.classList.remove("hidden");
     if (onChangeCb) onChangeCb(book);
   }
+
+  function markClean() {
+    dirty = false;
+    if (els.dirtyFlag) els.dirtyFlag.classList.add("hidden");
+  }
+
+  function isDirty() { return dirty; }
 
   function load(b) {
     book = b;
@@ -42,6 +69,7 @@ window.Editor = (function () {
       book.startScene = sid;
     }
     activeSceneId = book.startScene && book.scenes[book.startScene] ? book.startScene : Object.keys(book.scenes)[0];
+    markClean();
     render();
   }
 
@@ -50,28 +78,77 @@ window.Editor = (function () {
   function render() {
     els.title.value = book.title || "";
     els.author.value = book.author || "";
+    els.cover.value = book.cover || "";
     renderSceneList();
     renderActiveScene();
   }
 
+  function findReachable() {
+    const reachable = new Set();
+    if (!book.startScene || !book.scenes[book.startScene]) return reachable;
+    const queue = [book.startScene];
+    while (queue.length) {
+      const id = queue.shift();
+      if (reachable.has(id)) continue;
+      reachable.add(id);
+      const s = book.scenes[id];
+      if (!s) continue;
+      (s.choices || []).forEach(c => {
+        if (c.next && book.scenes[c.next] && !reachable.has(c.next)) queue.push(c.next);
+      });
+    }
+    return reachable;
+  }
+
   function renderSceneList() {
     els.sceneListUl.innerHTML = "";
-    Object.values(book.scenes).forEach(scene => {
+    const reachable = findReachable();
+    const ids = Object.keys(book.scenes);
+    let unreachableCount = 0;
+    ids.forEach((id, idx) => {
+      const scene = book.scenes[id];
       const li = document.createElement("li");
-      li.textContent = scene.title || scene.id;
+      const name = document.createElement("span");
+      name.className = "scene-name";
+      name.textContent = scene.title || scene.id;
       li.dataset.sceneId = scene.id;
       if (scene.id === activeSceneId) li.classList.add("active");
       if (scene.id === book.startScene) li.classList.add("start");
+      const isUnreachable = !reachable.has(scene.id);
+      if (isUnreachable) {
+        li.classList.add("unreachable");
+        unreachableCount++;
+      }
       li.addEventListener("click", e => {
-        if (e.target.classList.contains("del")) return;
+        if (e.target.closest("button")) return;
         activeSceneId = scene.id;
         renderSceneList();
         renderActiveScene();
       });
+      li.appendChild(name);
 
-      if (Object.keys(book.scenes).length > 1) {
+      const tools = document.createElement("span");
+      tools.className = "scene-tools";
+
+      const up = document.createElement("button");
+      up.className = "icon";
+      up.title = "上移";
+      up.textContent = "▲";
+      up.disabled = idx === 0;
+      up.addEventListener("click", ev => { ev.stopPropagation(); moveScene(scene.id, -1); });
+
+      const down = document.createElement("button");
+      down.className = "icon";
+      down.title = "下移";
+      down.textContent = "▼";
+      down.disabled = idx === ids.length - 1;
+      down.addEventListener("click", ev => { ev.stopPropagation(); moveScene(scene.id, +1); });
+
+      tools.append(up, down);
+
+      if (ids.length > 1) {
         const del = document.createElement("button");
-        del.className = "del";
+        del.className = "icon del";
         del.textContent = "✕";
         del.title = "刪除場景";
         del.addEventListener("click", ev => {
@@ -79,10 +156,18 @@ window.Editor = (function () {
           if (!confirm(`確定刪除場景「${scene.title || scene.id}」？`)) return;
           deleteScene(scene.id);
         });
-        li.appendChild(del);
+        tools.appendChild(del);
       }
+      li.appendChild(tools);
       els.sceneListUl.appendChild(li);
     });
+
+    if (unreachableCount > 0) {
+      els.unreachableHint.classList.remove("hidden");
+      els.unreachableHint.textContent = `⚠ 有 ${unreachableCount} 個場景目前無法被起始場景走到，請檢查選項連結。`;
+    } else {
+      els.unreachableHint.classList.add("hidden");
+    }
   }
 
   function renderActiveScene() {
@@ -108,11 +193,11 @@ window.Editor = (function () {
       text.addEventListener("input", () => { choice.text = text.value; markDirty(); });
 
       const target = document.createElement("select");
-      target.innerHTML = `<option value="">— 選擇下一場景（留空 = 結局） —</option>` +
+      target.innerHTML = `<option value="">— 結局（無下一場景） —</option>` +
         Object.values(book.scenes)
-          .map(s => `<option value="${s.id}" ${s.id === choice.next ? "selected" : ""}>${s.title || s.id}</option>`)
+          .map(s => `<option value="${s.id}" ${s.id === choice.next ? "selected" : ""}>${escapeHtml(s.title || s.id)}</option>`)
           .join("");
-      target.addEventListener("change", () => { choice.next = target.value || null; markDirty(); });
+      target.addEventListener("change", () => { choice.next = target.value || null; markDirty(); renderSceneList(); });
 
       const del = document.createElement("button");
       del.className = "ghost-btn small";
@@ -120,12 +205,19 @@ window.Editor = (function () {
       del.addEventListener("click", () => {
         scene.choices.splice(idx, 1);
         renderChoices(scene);
+        renderSceneList();
         markDirty();
       });
 
       row.append(text, target, del);
       els.choicesList.appendChild(row);
     });
+  }
+
+  function escapeHtml(s) {
+    return String(s).replace(/[&<>"']/g, c => ({
+      "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;"
+    }[c]));
   }
 
   function onSceneFieldInput() {
@@ -148,15 +240,20 @@ window.Editor = (function () {
       els.sceneId.value = activeSceneId;
       return;
     }
-    const scene = book.scenes[activeSceneId];
-    delete book.scenes[activeSceneId];
-    scene.id = newId;
-    book.scenes[newId] = scene;
-    // Re-point any choices targeting the old id.
+    // Rebuild scenes object preserving order while renaming the active one.
+    const next = {};
+    for (const id of Object.keys(book.scenes)) {
+      if (id === activeSceneId) {
+        const s = book.scenes[id];
+        s.id = newId;
+        next[newId] = s;
+      } else {
+        next[id] = book.scenes[id];
+      }
+    }
+    book.scenes = next;
     Object.values(book.scenes).forEach(s => {
-      (s.choices || []).forEach(c => {
-        if (c.next === activeSceneId) c.next = newId;
-      });
+      (s.choices || []).forEach(c => { if (c.next === activeSceneId) c.next = newId; });
     });
     if (book.startScene === activeSceneId) book.startScene = newId;
     activeSceneId = newId;
@@ -168,7 +265,6 @@ window.Editor = (function () {
     if (els.sceneStart.checked) {
       book.startScene = activeSceneId;
     } else if (book.startScene === activeSceneId) {
-      // Need at least one start scene; revert.
       els.sceneStart.checked = true;
       return;
     }
@@ -192,11 +288,14 @@ window.Editor = (function () {
     scene.choices = scene.choices || [];
     scene.choices.push({ text: "新選項", next: null });
     renderChoices(scene);
+    renderSceneList();
     markDirty();
   }
 
   function deleteScene(id) {
-    delete book.scenes[id];
+    const next = {};
+    for (const k of Object.keys(book.scenes)) if (k !== id) next[k] = book.scenes[k];
+    book.scenes = next;
     Object.values(book.scenes).forEach(s => {
       s.choices = (s.choices || []).filter(c => c.next !== id);
     });
@@ -210,5 +309,18 @@ window.Editor = (function () {
     markDirty();
   }
 
-  return { init, load, getBook };
+  function moveScene(id, delta) {
+    const ids = Object.keys(book.scenes);
+    const idx = ids.indexOf(id);
+    const target = idx + delta;
+    if (target < 0 || target >= ids.length) return;
+    [ids[idx], ids[target]] = [ids[target], ids[idx]];
+    const next = {};
+    ids.forEach(k => { next[k] = book.scenes[k]; });
+    book.scenes = next;
+    renderSceneList();
+    markDirty();
+  }
+
+  return { init, load, getBook, isDirty, markClean };
 })();

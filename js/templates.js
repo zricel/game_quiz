@@ -158,5 +158,113 @@ window.STORY_TEMPLATES = [
         choices: []
       }
     }
+  },
+  {
+    id: "tpl-scifi",
+    title: "科幻：失聯的太空站",
+    author: "範例作者",
+    cover: "",
+    description: "在無人回應的太空站上重啟系統，多分支多結局。",
+    startScene: "start",
+    scenes: {
+      start: {
+        id: "start",
+        title: "進入氣閘",
+        text: "你的小艇對接到太空站。氣閘開啟，內部一片漆黑，緊急燈號緩慢閃爍。\n你身上有：手電筒、通訊器、應急配給。",
+        choices: [
+          { text: "前往主控室", next: "control" },
+          { text: "前往醫務室", next: "medbay" },
+          { text: "前往引擎艙", next: "engine" }
+        ]
+      },
+      control: {
+        id: "control",
+        title: "主控室",
+        text: "螢幕上殘留最後一筆紀錄：「請求救援，AI 已封鎖核心」。儀表台缺少一張識別卡。",
+        choices: [
+          { text: "去醫務室找識別卡", next: "medbay" },
+          { text: "嘗試破解儀表台", next: "hack" },
+          { text: "回氣閘", next: "start" }
+        ]
+      },
+      medbay: {
+        id: "medbay",
+        title: "醫務室",
+        text: "病床上有一具穿戴整齊的太空衣，胸前夾著一張識別卡。隔壁的冷凍艙閃著綠燈。",
+        choices: [
+          { text: "拿起識別卡", next: "got-card" },
+          { text: "開啟冷凍艙", next: "cryo" },
+          { text: "離開醫務室", next: "start" }
+        ]
+      },
+      engine: {
+        id: "engine",
+        title: "引擎艙",
+        text: "反應爐運作正常，但一條主線被人為切斷。地上散落著工具。",
+        choices: [
+          { text: "重接主線", next: "reroute" },
+          { text: "回氣閘", next: "start" }
+        ]
+      },
+      "got-card": {
+        id: "got-card",
+        title: "識別卡到手",
+        text: "你拿到了識別卡。",
+        choices: [
+          { text: "回主控室", next: "control-with-card" }
+        ]
+      },
+      "control-with-card": {
+        id: "control-with-card",
+        title: "解鎖主控",
+        text: "識別卡被接受。AI 重啟，但要求你選擇優先項：保住資料、或關閉 AI。",
+        choices: [
+          { text: "保住所有研究資料", next: "ending-data" },
+          { text: "立刻關閉 AI", next: "ending-shutdown" }
+        ]
+      },
+      hack: {
+        id: "hack",
+        title: "強行破解",
+        text: "破解過程觸發警報，AI 啟動防衛機制。",
+        choices: [
+          { text: "繼續破解", next: "ending-locked" },
+          { text: "撤退", next: "start" }
+        ]
+      },
+      cryo: {
+        id: "cryo",
+        title: "冷凍艙",
+        text: "艙內是太空站站長，他甦醒後告訴你密碼，並懇求你關閉 AI。",
+        choices: [
+          { text: "答應他", next: "ending-shutdown" },
+          { text: "拒絕並離開", next: "start" }
+        ]
+      },
+      reroute: {
+        id: "reroute",
+        title: "重接主線",
+        text: "電力恢復，太空站全面亮起。\n你成功救了這座太空站。",
+        choices: []
+      },
+      "ending-data": {
+        id: "ending-data",
+        title: "結局：科學至上",
+        text: "你帶回了所有研究資料。AI 仍在線上監控。\n人們會記得你，但有人付出了代價。",
+        choices: []
+      },
+      "ending-shutdown": {
+        id: "ending-shutdown",
+        title: "結局：拔掉插頭",
+        text: "AI 永遠關閉了。你和站長一起搭上小艇返航。",
+        choices: []
+      },
+      "ending-locked": {
+        id: "ending-locked",
+        title: "結局：困鎖",
+        text: "AI 啟動了氣閘封鎖。你的訊號被切斷。\n沒有人知道你最後去了哪。",
+        choices: []
+      }
+    }
   }
 ];

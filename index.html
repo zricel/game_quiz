@@ -13,9 +13,12 @@
       <span class="logo">📖</span>
       <h1>故事遊戲書</h1>
     </div>
+    <button id="nav-toggle" class="nav-toggle hidden" aria-label="開關選單">☰</button>
     <nav id="nav" class="nav hidden">
       <button data-view="library" class="nav-btn">我的書庫</button>
-      <button data-view="editor" class="nav-btn">建立新書</button>
+      <button data-view="new" class="nav-btn">建立新書</button>
+      <button id="import-btn" class="nav-btn">匯入</button>
+      <input id="import-file" type="file" accept="application/json" hidden />
       <div class="user-box">
         <img id="user-avatar" alt="" />
         <span id="user-name"></span>
@@ -56,7 +59,10 @@
     <section id="view-library" class="view hidden">
       <div class="section-head">
         <h2>我的書庫</h2>
-        <button id="new-from-template-btn" class="primary-btn">＋ 從版型建立新書</button>
+        <div class="head-actions">
+          <input id="library-search" type="search" placeholder="搜尋書名 / 作者…" />
+          <button id="new-book-btn" class="primary-btn">＋ 建立新書</button>
+        </div>
       </div>
       <div id="library-list" class="card-grid"></div>
 
@@ -69,9 +75,20 @@
       <div class="editor-toolbar">
         <input id="book-title" type="text" placeholder="書名…" />
         <input id="book-author" type="text" placeholder="作者…" />
+        <label class="cover-picker" title="封面樣式">
+          封面
+          <select id="book-cover">
+            <option value="">預設</option>
+            <option value="t1">藍紫</option>
+            <option value="t2">深綠</option>
+            <option value="t3">桃褐</option>
+          </select>
+        </label>
+        <span id="dirty-flag" class="dirty-flag hidden" title="尚未儲存">●</span>
         <span class="spacer"></span>
         <button id="add-scene-btn" class="ghost-btn">＋ 新增場景</button>
         <button id="play-btn" class="ghost-btn">▶ 試玩</button>
+        <button id="export-btn" class="ghost-btn">⤓ 匯出</button>
         <button id="save-btn" class="primary-btn">💾 儲存</button>
         <button id="delete-book-btn" class="danger-btn">刪除</button>
       </div>
@@ -79,10 +96,11 @@
         <aside class="scene-list">
           <h4>場景</h4>
           <ul id="scene-list-ul"></ul>
+          <p id="unreachable-hint" class="hint-text hidden"></p>
         </aside>
         <div class="scene-edit">
           <div class="form-row">
-            <label>場景 ID</label>
+            <label>場景 ID（被選項引用的識別碼）</label>
             <input id="scene-id" type="text" />
           </div>
           <div class="form-row">
@@ -93,12 +111,11 @@
             <label>場景內文</label>
             <textarea id="scene-text" rows="8"></textarea>
           </div>
-          <div class="form-row">
-            <label>是否為起始場景</label>
-            <input id="scene-start" type="checkbox" />
+          <div class="form-row form-row-inline">
+            <label><input id="scene-start" type="checkbox" /> 設為起始場景</label>
           </div>
           <div class="form-row">
-            <label>選項</label>
+            <label>選項（無選項代表結局）</label>
             <div id="choices-list"></div>
             <button id="add-choice-btn" class="ghost-btn small">＋ 新增選項</button>
           </div>
@@ -123,6 +140,23 @@
       </article>
     </section>
   </main>
+
+  <!-- New book chooser modal -->
+  <div id="modal-newbook" class="modal hidden" role="dialog" aria-modal="true">
+    <div class="modal-card">
+      <h3>建立新書</h3>
+      <p class="muted">選一個起點：</p>
+      <div class="modal-actions">
+        <button id="newbook-blank" class="primary-btn">📝 從空白開始</button>
+        <button id="newbook-template" class="ghost-btn">📚 從版型開始</button>
+        <button id="newbook-import" class="ghost-btn">⤒ 匯入 JSON</button>
+      </div>
+      <button id="newbook-cancel" class="ghost-btn small">取消</button>
+    </div>
+  </div>
+
+  <!-- Toast -->
+  <div id="toast" class="toast hidden"></div>
 
   <footer class="footer">
     <small>本站僅在你瀏覽器中儲存故事資料 (localStorage)。</small>
