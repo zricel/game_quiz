@@ -1,0 +1,138 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>故事遊戲書 Story Game Book</title>
+  <link rel="stylesheet" href="css/styles.css" />
+  <script src="https://accounts.google.com/gsi/client" async defer></script>
+</head>
+<body>
+  <header class="topbar">
+    <div class="brand">
+      <span class="logo">📖</span>
+      <h1>故事遊戲書</h1>
+    </div>
+    <nav id="nav" class="nav hidden">
+      <button data-view="library" class="nav-btn">我的書庫</button>
+      <button data-view="editor" class="nav-btn">建立新書</button>
+      <div class="user-box">
+        <img id="user-avatar" alt="" />
+        <span id="user-name"></span>
+        <button id="signout-btn" class="ghost-btn">登出</button>
+      </div>
+    </nav>
+  </header>
+
+  <main id="app">
+    <!-- Login view -->
+    <section id="view-login" class="view">
+      <div class="hero">
+        <h2>建立屬於你的互動故事書</h2>
+        <p class="lead">寫下分支劇情，讓讀者選擇命運。請先以 Google 帳號登入。</p>
+        <div id="g_id_onload"
+             data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+             data-callback="handleCredentialResponse"
+             data-auto_prompt="false">
+        </div>
+        <div class="g_id_signin"
+             data-type="standard"
+             data-shape="pill"
+             data-theme="filled_blue"
+             data-text="signin_with"
+             data-size="large"
+             data-locale="zh_TW">
+        </div>
+        <p class="hint">尚未設定 Client ID？請參考 README，將 <code>index.html</code> 中的 <code>YOUR_GOOGLE_CLIENT_ID</code> 換成你自己的 Google OAuth Client ID。</p>
+        <details class="dev-mode">
+          <summary>沒有 Google Client ID？使用體驗模式</summary>
+          <p>體驗模式只在本機儲存資料，不會真的登入 Google。</p>
+          <button id="demo-login" class="primary-btn">以體驗模式進入</button>
+        </details>
+      </div>
+    </section>
+
+    <!-- Library view -->
+    <section id="view-library" class="view hidden">
+      <div class="section-head">
+        <h2>我的書庫</h2>
+        <button id="new-from-template-btn" class="primary-btn">＋ 從版型建立新書</button>
+      </div>
+      <div id="library-list" class="card-grid"></div>
+
+      <h3 class="section-sub">預設版型</h3>
+      <div id="template-list" class="card-grid"></div>
+    </section>
+
+    <!-- Editor view -->
+    <section id="view-editor" class="view hidden">
+      <div class="editor-toolbar">
+        <input id="book-title" type="text" placeholder="書名…" />
+        <input id="book-author" type="text" placeholder="作者…" />
+        <span class="spacer"></span>
+        <button id="add-scene-btn" class="ghost-btn">＋ 新增場景</button>
+        <button id="play-btn" class="ghost-btn">▶ 試玩</button>
+        <button id="save-btn" class="primary-btn">💾 儲存</button>
+        <button id="delete-book-btn" class="danger-btn">刪除</button>
+      </div>
+      <div class="editor-body">
+        <aside class="scene-list">
+          <h4>場景</h4>
+          <ul id="scene-list-ul"></ul>
+        </aside>
+        <div class="scene-edit">
+          <div class="form-row">
+            <label>場景 ID</label>
+            <input id="scene-id" type="text" />
+          </div>
+          <div class="form-row">
+            <label>場景標題</label>
+            <input id="scene-title" type="text" />
+          </div>
+          <div class="form-row">
+            <label>場景內文</label>
+            <textarea id="scene-text" rows="8"></textarea>
+          </div>
+          <div class="form-row">
+            <label>是否為起始場景</label>
+            <input id="scene-start" type="checkbox" />
+          </div>
+          <div class="form-row">
+            <label>選項</label>
+            <div id="choices-list"></div>
+            <button id="add-choice-btn" class="ghost-btn small">＋ 新增選項</button>
+          </div>
+        </div>
+      </div>
+    </section>
+
+    <!-- Player view -->
+    <section id="view-player" class="view hidden">
+      <div class="player-toolbar">
+        <button id="exit-player-btn" class="ghost-btn">← 離開</button>
+        <h2 id="player-title"></h2>
+        <button id="restart-btn" class="ghost-btn">⟲ 重新開始</button>
+      </div>
+      <article class="player-stage">
+        <h3 id="player-scene-title"></h3>
+        <p id="player-scene-text"></p>
+        <div id="player-choices"></div>
+        <div id="player-end" class="hidden">
+          <p class="end-mark">— 故事結束 —</p>
+        </div>
+      </article>
+    </section>
+  </main>
+
+  <footer class="footer">
+    <small>本站僅在你瀏覽器中儲存故事資料 (localStorage)。</small>
+  </footer>
+
+  <script src="js/templates.js"></script>
+  <script src="js/storage.js"></script>
+  <script src="js/auth.js"></script>
+  <script src="js/editor.js"></script>
+  <script src="js/player.js"></script>
+  <script src="js/app.js"></script>
+</body>
+</html>
