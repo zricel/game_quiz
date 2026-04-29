@@ -32,26 +32,33 @@
     <section id="view-login" class="view">
       <div class="hero">
         <h2>建立屬於你的互動故事書</h2>
-        <p class="lead">寫下分支劇情，讓讀者選擇命運。請先以 Google 帳號登入。</p>
-        <div id="g_id_onload"
-             data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
-             data-callback="handleCredentialResponse"
-             data-auto_prompt="false">
+        <p class="lead">寫下分支劇情，讓讀者選擇命運。</p>
+
+        <div id="login-google-block">
+          <div id="g_id_onload"
+               data-client_id="YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com"
+               data-callback="handleCredentialResponse"
+               data-auto_prompt="false">
+          </div>
+          <div class="g_id_signin"
+               data-type="standard"
+               data-shape="pill"
+               data-theme="filled_blue"
+               data-text="signin_with"
+               data-size="large"
+               data-locale="zh_TW">
+          </div>
         </div>
-        <div class="g_id_signin"
-             data-type="standard"
-             data-shape="pill"
-             data-theme="filled_blue"
-             data-text="signin_with"
-             data-size="large"
-             data-locale="zh_TW">
-        </div>
-        <p class="hint">尚未設定 Client ID？請參考 README，將 <code>index.html</code> 中的 <code>YOUR_GOOGLE_CLIENT_ID</code> 換成你自己的 Google OAuth Client ID。</p>
-        <details class="dev-mode">
-          <summary>沒有 Google Client ID？使用體驗模式</summary>
-          <p>體驗模式只在本機儲存資料，不會真的登入 Google。</p>
-          <button id="demo-login" class="primary-btn">以體驗模式進入</button>
-        </details>
+
+        <div id="login-divider" class="login-divider"><span>或</span></div>
+
+        <button id="demo-login" class="primary-btn big">📝 立即以體驗模式進入</button>
+        <p class="hint">體驗模式只把故事存在這台瀏覽器，不會登入 Google。</p>
+
+        <p id="setup-warning" class="setup-warning hidden">
+          ⚠ 偵測到尚未設定 Google Client ID。<br />
+          請參考 README，將 <code>index.html</code> 中的 <code>YOUR_GOOGLE_CLIENT_ID</code> 換成你自己的 OAuth Client ID，並把網站網域加入 Google Cloud 的「已授權的 JavaScript 來源」。在那之前，請使用上方的體驗模式。
+        </p>
       </div>
     </section>
 

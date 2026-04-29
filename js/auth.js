@@ -88,5 +88,12 @@ window.Auth = (function () {
     }
   };
 
-  return { onChange, getUser, restore, signOut, loginAsDemo };
+  function isClientIdConfigured() {
+    const el = document.getElementById("g_id_onload");
+    if (!el) return false;
+    const id = el.getAttribute("data-client_id") || "";
+    return id && !id.startsWith("YOUR_GOOGLE_CLIENT_ID") && /\.apps\.googleusercontent\.com$/.test(id);
+  }
+
+  return { onChange, getUser, restore, signOut, loginAsDemo, isClientIdConfigured };
 })();

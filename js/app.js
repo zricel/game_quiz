@@ -16,6 +16,22 @@
   let librarySearch = "";
   let cameToPlayerFromEditor = false;
 
+  function applyClientIdState() {
+    const ok = Auth.isClientIdConfigured();
+    const googleBlock = document.getElementById("login-google-block");
+    const divider = document.getElementById("login-divider");
+    const warn = document.getElementById("setup-warning");
+    if (!ok) {
+      if (googleBlock) googleBlock.classList.add("hidden");
+      if (divider) divider.classList.add("hidden");
+      if (warn) warn.classList.remove("hidden");
+    } else {
+      if (googleBlock) googleBlock.classList.remove("hidden");
+      if (divider) divider.classList.remove("hidden");
+      if (warn) warn.classList.add("hidden");
+    }
+  }
+
   function showView(name) {
     Object.entries(views).forEach(([k, el]) => {
       el.classList.toggle("hidden", k !== name);
@@ -418,4 +434,5 @@
 
   Auth.restore();
   ensureUserOrLogin();
+  applyClientIdState();
 })();
