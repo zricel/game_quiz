@@ -54,6 +54,47 @@ npx serve .
 
 開啟 <http://localhost:8000>。
 
+## 部署到 Vercel
+
+這是一個純靜態網站，沒有 build step，Vercel 會直接以根目錄上傳檔案。
+
+### 方法 A：用 Vercel 網頁
+
+1. 把這個 repo 推到 GitHub / GitLab / Bitbucket。
+2. 到 <https://vercel.com/new> 點 **Import Project** 選你的 repo。
+3. **Framework Preset** 選 `Other`，**Build Command** 留空，**Output Directory** 留空（根目錄）。
+4. 按 **Deploy**。Vercel 會給你一個 `*.vercel.app` 網域。
+5. 把那個網域加到 Google OAuth 的「已授權的 JavaScript 來源」（見下方）。
+
+### 方法 B：用 Vercel CLI
+
+```bash
+npm i -g vercel
+vercel        # 第一次：選帳號 / 建立 project，Framework 選 Other
+vercel --prod # 推到 production
+```
+
+### Google OAuth 設定（部署後一定要做）
+
+部署完成後，把 Vercel 給的網域加進 Google Cloud Console：
+
+1. 進入「API 和服務 → 憑證 → 你的 OAuth Client」。
+2. 在「已授權的 JavaScript 來源」加入：
+   - `https://<your-project>.vercel.app`
+   - 還有自訂網域（如果你綁了的話）
+3. 把 `index.html` 裡的 `YOUR_GOOGLE_CLIENT_ID.apps.googleusercontent.com` 換成你的 Client ID，commit 後 Vercel 會自動重新部署。
+
+> 小提示：Google Sign-In 不允許 `localhost` 以外的 HTTP，必須是 HTTPS。Vercel 預設就有 HTTPS，不需要額外設定。
+
+### Vercel 設定檔
+
+`vercel.json` 已包含：
+- `cleanUrls`：去掉 `.html` 後綴。
+- 安全標頭：`X-Content-Type-Options`、`X-Frame-Options`、`Referrer-Policy`、`Permissions-Policy`。
+- CSS / JS 設為每次重新驗證快取，避免使用者載到舊版。
+
+如果你要綁自訂網域，在 Vercel 專案的 **Settings → Domains** 設定即可。
+
 ## 檔案結構
 
 ```
@@ -67,6 +108,8 @@ npx serve .
 │   ├── editor.js       分支編輯器
 │   ├── player.js       試玩器
 │   └── app.js          主控制器（路由 / 事件）
+├── vercel.json         Vercel 部署設定（clean URLs、安全標頭）
+├── .vercelignore       排除不上傳的檔案
 └── README.md
 ```
 
