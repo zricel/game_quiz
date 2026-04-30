@@ -524,5 +524,247 @@ window.STORY_TEMPLATES = [
         ]
       }
     }
+  },
+
+  // ───────────────────────────────────────────────────────────────
+  // 🕯 綜合模板：迷霧古宅
+  // 解謎是主軸，每道謎題答錯時會觸發備援的小遊戲（戰鬥／逃脫），
+  // 兩次失敗才走向壞結局。示範「謎題 → 失敗 → 戰鬥」的鏈式分支。
+  // ───────────────────────────────────────────────────────────────
+  {
+    id: "tpl-misty-manor",
+    title: "🕯 綜合模板：迷霧古宅",
+    author: "範例作者",
+    cover: "t3",
+    description: "推理為主、戰鬥為輔。每個謎題答錯時會觸發備援的擲骰／拳賽／逃脫小遊戲。",
+    startScene: "foyer",
+    scenes: {
+      foyer: {
+        id: "foyer",
+        title: "古宅玄關",
+        text: "厚重的橡木門在你身後關上。空氣裡飄著潮濕的灰塵與燭蠟味。\n你看見兩道走廊：左邊是書房，右邊是廚房。",
+        choices: [
+          { text: "走進書房", next: "library" },
+          { text: "走進廚房", next: "kitchen" }
+        ]
+      },
+
+      // ── 書房：成語謎題；失敗 → 書架倒塌（擲骰備援） ──
+      library: {
+        id: "library",
+        title: "佈滿灰塵的書房",
+        text: "你在書架最上層發現一本被翻爛的書，扉頁寫著一句殘缺的成語。\n似乎是某個密碼的提示。",
+        miniGame: "idiom",
+        choices: [
+          { text: "把字寫在書封內側，門縫亮起一道光", next: "corridor", outcome: "success" },
+          { text: "踩到鬆動的書架，整面塌下來——!", next: "library-fight", outcome: "failure" }
+        ]
+      },
+      "library-fight": {
+        id: "library-fight",
+        title: "塌下的書架",
+        text: "幾百本書朝你壓下。你必須立刻反應——擲骰看你能不能側身躲開。",
+        miniGame: "dice",
+        choices: [
+          { text: "千鈞一髮地閃過，鑽出書堆", next: "corridor", outcome: "success" },
+          { text: "被木板壓住小腿，動彈不得…", next: "ending-crushed", outcome: "failure" }
+        ]
+      },
+
+      // ── 廚房：心算謎題；失敗 → 碗盤暴動（剪刀石頭布備援） ──
+      kitchen: {
+        id: "kitchen",
+        title: "冷掉的廚房",
+        text: "桌上整齊擺著餐具，牆上的時鐘停在 7 點。\n你瞥見磚縫間刻著一道算式——對齊它就能轉動磚塊。",
+        miniGame: "math",
+        choices: [
+          { text: "算出來了！磚塊推開，露出密道", next: "corridor", outcome: "success" },
+          { text: "對錯了——所有碗盤忽然漂浮起來！", next: "kitchen-rps", outcome: "failure" }
+        ]
+      },
+      "kitchen-rps": {
+        id: "kitchen-rps",
+        title: "盤子大戰",
+        text: "亡靈附身的餐具朝你飛來。\n你必須贏下一場（或至少打平）才能脫身。",
+        miniGame: "rps",
+        choices: [
+          { text: "擋下！趁亂衝出廚房", next: "corridor", outcome: "success" },
+          { text: "被打中頭，眼前一黑…", next: "ending-haunted", outcome: "failure" }
+        ]
+      },
+
+      // ── 走廊：分岔，可選地下室 / 閣樓 / 直接前往大門 ──
+      corridor: {
+        id: "corridor",
+        title: "通往深處的走廊",
+        text: "你站在中央走廊。地下室的鐵門半掩，樓上的閣樓傳來腳步聲，盡頭則是大門。\n大門看起來上了三道鎖。",
+        choices: [
+          { text: "下到地下室", next: "basement" },
+          { text: "上到閣樓", next: "attic" },
+          { text: "直奔大門（沒鑰匙就過不去）", next: "exit-door" }
+        ]
+      },
+
+      // ── 地下室：數列謎題；失敗 → 鐵門關上（猜數字逃脫） ──
+      basement: {
+        id: "basement",
+        title: "潮濕的地下室",
+        text: "牆上嵌著五盞石燈，閃爍著一連串數字。\n旁邊一座石製保險箱嗡嗡作響。",
+        miniGame: "sequence",
+        choices: [
+          { text: "推算正確，保險箱彈開——拿到鑰匙 A", next: "got-key-a", outcome: "success" },
+          { text: "推算錯誤，鐵門砰然關上！", next: "basement-escape", outcome: "failure" }
+        ]
+      },
+      "basement-escape": {
+        id: "basement-escape",
+        title: "上鎖的地下室",
+        text: "鐵門有四位數字鎖。你從牆上殘字猜出範圍是 1–20。",
+        miniGame: "guess",
+        choices: [
+          { text: "猜對了！門開——回到走廊", next: "corridor", outcome: "success" },
+          { text: "次數用盡，再也出不去了…", next: "ending-trapped", outcome: "failure" }
+        ]
+      },
+      "got-key-a": {
+        id: "got-key-a",
+        title: "拿到鑰匙 A",
+        text: "保險箱裡躺著一把銀色鑰匙，柄上刻著「日」字。",
+        choices: [
+          { text: "回到走廊", next: "corridor-with-a" }
+        ]
+      },
+      "corridor-with-a": {
+        id: "corridor-with-a",
+        title: "走廊（已有鑰匙 A）",
+        text: "鑰匙 A 在你口袋裡發著微熱。你還可以選擇上閣樓拿第二把鑰匙，或直接挑戰大門。",
+        choices: [
+          { text: "上到閣樓", next: "attic-with-a" },
+          { text: "直接前往大門（只有一把鑰匙）", next: "exit-one-key" }
+        ]
+      },
+
+      // ── 閣樓：拆字謎題；失敗 → 蝙蝠群攻（拋硬幣備援） ──
+      attic: {
+        id: "attic",
+        title: "佈滿塵蛛網的閣樓",
+        text: "閣樓中央立著一座銅鏡，鏡面浮現一個提示——要寫出一個漢字。",
+        miniGame: "chargame",
+        choices: [
+          { text: "字成則鏡開——拿到鑰匙 B", next: "got-key-b", outcome: "success" },
+          { text: "鏡面碎裂，蝙蝠群湧出！", next: "attic-bats", outcome: "failure" }
+        ]
+      },
+      "attic-with-a": {
+        id: "attic-with-a",
+        title: "閣樓（已有鑰匙 A）",
+        text: "鏡子又亮起來，提示著另一個漢字。",
+        miniGame: "chargame",
+        choices: [
+          { text: "拿到鑰匙 B——兩把都集齊了", next: "got-both-keys", outcome: "success" },
+          { text: "鏡面碎裂，蝙蝠群湧出！", next: "attic-bats", outcome: "failure" }
+        ]
+      },
+      "attic-bats": {
+        id: "attic-bats",
+        title: "蝙蝠群襲",
+        text: "黑壓壓的翅膀拍向你。\n你只能憑運氣——拋一枚硬幣。",
+        miniGame: "coin",
+        choices: [
+          { text: "蹲下避過，逃回走廊", next: "corridor", outcome: "success" },
+          { text: "被拍倒在地，意識模糊…", next: "ending-pecked", outcome: "failure" }
+        ]
+      },
+      "got-key-b": {
+        id: "got-key-b",
+        title: "拿到鑰匙 B",
+        text: "一把金色鑰匙落在鏡前，柄上刻著「月」字。\n但你只有這一把鑰匙——還可以下到地下室拿另一把。",
+        choices: [
+          { text: "下到地下室", next: "basement-after-b" },
+          { text: "直接前往大門（只有一把鑰匙）", next: "exit-one-key" }
+        ]
+      },
+      "basement-after-b": {
+        id: "basement-after-b",
+        title: "地下室（已有鑰匙 B）",
+        text: "石燈又閃爍起來。",
+        miniGame: "sequence",
+        choices: [
+          { text: "拿到鑰匙 A——兩把都集齊了", next: "got-both-keys", outcome: "success" },
+          { text: "保險箱緊閉——只能帶著鑰匙 B 闖大門", next: "exit-one-key", outcome: "failure" }
+        ]
+      },
+      "got-both-keys": {
+        id: "got-both-keys",
+        title: "日月雙鑰",
+        text: "你手中握著兩把鑰匙：「日」與「月」。\n大門最後一道鎖等著你。",
+        choices: [
+          { text: "前往大門", next: "exit-door" }
+        ]
+      },
+
+      // ── 大門：自訂謎題（成敗決定真結局／中性結局） ──
+      "exit-door": {
+        id: "exit-door",
+        title: "三鎖大門",
+        text: "大門上的三道鎖中，前兩道分別需要「日」與「月」。最後一道刻著一行字：\n\n「我不是時間，但你每天都在我身上度過；我不是地點，但你逃不出我。」\n\n這道鎖只接受一個答案。",
+        puzzle: {
+          question: "「我不是時間，但你每天都在我身上度過；我不是地點，但你逃不出我。」我是什麼？",
+          answers: ["人生", "生命", "命運", "日子"],
+          hint: "比鐘錶大、比地圖更貼近你",
+          attempts: 2
+        },
+        choices: [
+          { text: "鑰匙、答案，三鎖齊開", next: "ending-truth", outcome: "success" },
+          { text: "鎖紋黯淡，門只開了一道縫", next: "ending-half", outcome: "failure" }
+        ]
+      },
+      "exit-one-key": {
+        id: "exit-one-key",
+        title: "只有一把鑰匙",
+        text: "你只有一把鑰匙，第三道鎖也沒回應。\n大門勉強開了一條縫，足夠側身擠出去。",
+        choices: [
+          { text: "離開古宅", next: "ending-half" }
+        ]
+      },
+
+      // ── 結局 ──
+      "ending-truth": {
+        id: "ending-truth",
+        title: "結局：真相之門",
+        text: "大門完全打開，晨光灑進來。\n你回頭看見古宅在霧中漸漸消散——它從來沒有真正存在過，那是你心裡的一場考驗。\n你帶著清明的記憶走出去。",
+        choices: []
+      },
+      "ending-half": {
+        id: "ending-half",
+        title: "結局：半開的門",
+        text: "你勉強擠出大門。霧氣纏在你身上久久不散，但至少你逃了出來。\n或許下次再來，你能解開最後那道鎖。",
+        choices: []
+      },
+      "ending-crushed": {
+        id: "ending-crushed",
+        title: "結局：書山下",
+        text: "你被書本與木板埋住，再也沒有發出聲音。",
+        choices: []
+      },
+      "ending-haunted": {
+        id: "ending-haunted",
+        title: "結局：盤中亡靈",
+        text: "你倒在廚房的瓷磚上。\n從此這座古宅又多了一名永遠的客人。",
+        choices: []
+      },
+      "ending-trapped": {
+        id: "ending-trapped",
+        title: "結局：地下室囚徒",
+        text: "鐵門再也沒有打開。\n沒有人會知道你曾來過這裡。",
+        choices: []
+      },
+      "ending-pecked": {
+        id: "ending-pecked",
+        title: "結局：閣樓黑翼",
+        text: "蝙蝠的翅膀拍滅了最後一根蠟燭。\n你再也沒有醒來。",
+        choices: []
+      }
+    }
   }
 ];
