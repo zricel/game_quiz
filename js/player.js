@@ -51,12 +51,17 @@ window.Player = (function () {
   }
 
   function pickMiniGameForScene(scene) {
+    // Custom puzzle on the scene takes precedence.
+    if (scene.puzzle && (scene.puzzle.question || (scene.puzzle.answers && scene.puzzle.answers.length))) {
+      return { game: MiniGames.get("custom"), config: scene.puzzle };
+    }
     if (scene.miniGame && scene.miniGame !== "none") {
-      return MiniGames.pickByName(scene.miniGame);
+      const g = MiniGames.pickByName(scene.miniGame);
+      return g ? { game: g, config: null } : null;
     }
     if (!isFirstScene && injectMode !== "off") {
       const rate = INJECT_RATE[injectMode] || 0;
-      if (Math.random() < rate) return MiniGames.random();
+      if (Math.random() < rate) return { game: MiniGames.random(), config: null };
     }
     return null;
   }
@@ -77,11 +82,11 @@ window.Player = (function () {
     els.end.classList.add("hidden");
     hideMiniGame();
 
-    const game = pickMiniGameForScene(scene);
-    if (game) {
-      runMiniGame(game).then(result => {
+    const picked = pickMiniGameForScene(scene);
+    if (picked && picked.game) {
+      runMiniGame(picked.game, picked.config).then(result => {
         lastResult = result;
-        showResultBanner(game, result);
+        showResultBanner(picked.game, result);
         showChoices(scene);
       });
     } else {
@@ -90,17 +95,18 @@ window.Player = (function () {
     isFirstScene = false;
   }
 
-  function runMiniGame(game) {
+  function runMiniGame(game, config) {
     if (!els.minigame) return Promise.resolve(null);
     els.minigame.classList.remove("hidden");
     els.minigame.innerHTML = "";
     const head = document.createElement("div");
     head.className = "mg-head";
-    head.innerHTML = `<span class="mg-icon">${game.icon || "🎮"}</span> <strong>${escapeHtml(game.name)}</strong> <span class="mg-desc">— ${escapeHtml(game.description || "")}</span>`;
+    const desc = (config && config.label) ? config.label : (game.description || "");
+    head.innerHTML = `<span class="mg-icon">${game.icon || "🎮"}</span> <strong>${escapeHtml(game.name)}</strong> <span class="mg-desc">— ${escapeHtml(desc)}</span>`;
     const body = document.createElement("div");
     body.className = "mg-body";
     els.minigame.append(head, body);
-    return game.play(body);
+    return game.play(body, config);
   }
 
   function showResultBanner(game, result) {

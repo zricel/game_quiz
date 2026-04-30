@@ -122,13 +122,32 @@
             <label><input id="scene-start" type="checkbox" /> 設為起始場景</label>
           </div>
           <div class="form-row">
-            <label>進入此場景時的小遊戲</label>
+            <label>進入此場景時的小遊戲 / 謎題</label>
             <select id="scene-minigame">
               <option value="">無</option>
-              <option value="random">隨機抽選</option>
+              <option value="random">🎲 隨機（任意）</option>
+              <option value="random-puzzle">🧩 隨機謎題（數學 / 成語 / 拆字…）</option>
             </select>
-            <small class="hint-text-mute">選項可在下方依「成功 / 失敗」過濾顯示。</small>
+            <small class="hint-text-mute">設定後，下方選項可依「成功 / 失敗」過濾顯示，做出推理分支。</small>
           </div>
+          <details id="custom-puzzle-section" class="custom-puzzle">
+            <summary>✏ 自訂謎題（會優先於上方小遊戲執行）</summary>
+            <div class="form-row">
+              <label>題目（顯示給玩家）</label>
+              <textarea id="puzzle-question" rows="3" placeholder="例：12 × 7 + 3 = ?  或  「亡羊補___」缺哪個字？"></textarea>
+            </div>
+            <div class="form-row">
+              <label>正解（多個可接受答案，用半形逗號分隔）</label>
+              <input id="puzzle-answers" type="text" placeholder="例：87  或  牢,監牢" />
+            </div>
+            <div class="form-row form-row-inline">
+              <label>提示（選填）<input id="puzzle-hint" type="text" placeholder="想想四則運算的順序" /></label>
+            </div>
+            <div class="form-row form-row-inline">
+              <label>嘗試次數 <input id="puzzle-attempts" type="number" min="1" max="9" value="2" style="width: 60px;" /></label>
+              <button id="puzzle-clear" class="ghost-btn small" type="button">清除自訂謎題</button>
+            </div>
+          </details>
           <div class="form-row">
             <label>選項（無選項代表結局）</label>
             <div id="choices-list"></div>

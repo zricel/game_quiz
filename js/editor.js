@@ -25,16 +25,29 @@ window.Editor = (function () {
     els.sceneStart = document.getElementById("scene-start");
     els.sceneMiniGame = document.getElementById("scene-minigame");
     els.choicesList = document.getElementById("choices-list");
+    els.puzzleSection = document.getElementById("custom-puzzle-section");
+    els.puzzleQuestion = document.getElementById("puzzle-question");
+    els.puzzleAnswers = document.getElementById("puzzle-answers");
+    els.puzzleHint = document.getElementById("puzzle-hint");
+    els.puzzleAttempts = document.getElementById("puzzle-attempts");
+    els.puzzleClear = document.getElementById("puzzle-clear");
 
-    // Populate mini-game options from registry.
+    // Populate mini-game options from registry (skip author-only entries
+    // like "custom" — that one is configured via the puzzle section).
     if (els.sceneMiniGame && window.MiniGames) {
-      MiniGames.list().forEach(g => {
+      MiniGames.listAuthorable().forEach(g => {
         const opt = document.createElement("option");
         opt.value = g.id;
         opt.textContent = `${g.icon || ""} ${g.name}`.trim();
         els.sceneMiniGame.appendChild(opt);
       });
     }
+
+    if (els.puzzleQuestion) els.puzzleQuestion.addEventListener("input", onPuzzleFieldInput);
+    if (els.puzzleAnswers) els.puzzleAnswers.addEventListener("input", onPuzzleFieldInput);
+    if (els.puzzleHint) els.puzzleHint.addEventListener("input", onPuzzleFieldInput);
+    if (els.puzzleAttempts) els.puzzleAttempts.addEventListener("input", onPuzzleFieldInput);
+    if (els.puzzleClear) els.puzzleClear.addEventListener("click", clearPuzzle);
 
     els.title.addEventListener("input", () => { book.title = els.title.value; markDirty(); });
     els.author.addEventListener("input", () => { book.author = els.author.value; markDirty(); });
@@ -190,12 +203,58 @@ window.Editor = (function () {
     els.sceneText.value = scene.text || "";
     els.sceneStart.checked = book.startScene === scene.id;
     if (els.sceneMiniGame) els.sceneMiniGame.value = scene.miniGame || "";
+    loadPuzzleFields(scene);
     renderChoices(scene);
+  }
+
+  function loadPuzzleFields(scene) {
+    const p = scene.puzzle || {};
+    if (els.puzzleQuestion) els.puzzleQuestion.value = p.question || "";
+    if (els.puzzleAnswers) {
+      const ans = Array.isArray(p.answers) ? p.answers : (p.answer ? [p.answer] : []);
+      els.puzzleAnswers.value = ans.join(", ");
+    }
+    if (els.puzzleHint) els.puzzleHint.value = p.hint || "";
+    if (els.puzzleAttempts) els.puzzleAttempts.value = p.attempts || 2;
+    if (els.puzzleSection && (p.question || (p.answers && p.answers.length))) {
+      els.puzzleSection.open = true;
+    }
+  }
+
+  function onPuzzleFieldInput() {
+    const scene = book.scenes[activeSceneId];
+    if (!scene) return;
+    const question = (els.puzzleQuestion && els.puzzleQuestion.value || "").trim();
+    const answersRaw = (els.puzzleAnswers && els.puzzleAnswers.value || "").trim();
+    const hint = (els.puzzleHint && els.puzzleHint.value || "").trim();
+    const attempts = parseInt(els.puzzleAttempts && els.puzzleAttempts.value, 10) || 2;
+    const answers = answersRaw
+      ? answersRaw.split(/[,，;；\s]+/).map(s => s.trim()).filter(Boolean)
+      : [];
+    if (!question && answers.length === 0 && !hint) {
+      delete scene.puzzle;
+    } else {
+      scene.puzzle = { question, answers, hint, attempts };
+    }
+    renderChoices(scene);
+    markDirty();
+  }
+
+  function clearPuzzle() {
+    const scene = book.scenes[activeSceneId];
+    if (!scene) return;
+    delete scene.puzzle;
+    if (els.puzzleQuestion) els.puzzleQuestion.value = "";
+    if (els.puzzleAnswers) els.puzzleAnswers.value = "";
+    if (els.puzzleHint) els.puzzleHint.value = "";
+    if (els.puzzleAttempts) els.puzzleAttempts.value = 2;
+    renderChoices(scene);
+    markDirty();
   }
 
   function renderChoices(scene) {
     els.choicesList.innerHTML = "";
-    const hasMiniGame = !!scene.miniGame;
+    const hasMiniGame = !!scene.miniGame || !!(scene.puzzle && (scene.puzzle.question || (scene.puzzle.answers && scene.puzzle.answers.length)));
     (scene.choices || []).forEach((choice, idx) => {
       const row = document.createElement("div");
       row.className = "choice-row";
