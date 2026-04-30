@@ -122,6 +122,14 @@
             <label><input id="scene-start" type="checkbox" /> 設為起始場景</label>
           </div>
           <div class="form-row">
+            <label>進入此場景時的小遊戲</label>
+            <select id="scene-minigame">
+              <option value="">無</option>
+              <option value="random">隨機抽選</option>
+            </select>
+            <small class="hint-text-mute">選項可在下方依「成功 / 失敗」過濾顯示。</small>
+          </div>
+          <div class="form-row">
             <label>選項（無選項代表結局）</label>
             <div id="choices-list"></div>
             <button id="add-choice-btn" class="ghost-btn small">＋ 新增選項</button>
@@ -135,9 +143,18 @@
       <div class="player-toolbar">
         <button id="exit-player-btn" class="ghost-btn">← 離開</button>
         <h2 id="player-title"></h2>
+        <label class="inject-picker" title="在場景之間隨機加入小遊戲">
+          🎲 隨機加料
+          <select id="inject-mode">
+            <option value="off">關閉</option>
+            <option value="sometimes">偶爾</option>
+            <option value="often">經常</option>
+          </select>
+        </label>
         <button id="restart-btn" class="ghost-btn">⟲ 重新開始</button>
       </div>
       <article class="player-stage">
+        <div id="player-minigame" class="mg-panel hidden"></div>
         <h3 id="player-scene-title"></h3>
         <p id="player-scene-text"></p>
         <div id="player-choices"></div>
@@ -169,6 +186,7 @@
     <small>本站僅在你瀏覽器中儲存故事資料 (localStorage)。</small>
   </footer>
 
+  <script src="js/minigames.js"></script>
   <script src="js/templates.js"></script>
   <script src="js/storage.js"></script>
   <script src="js/auth.js"></script>

@@ -350,11 +350,33 @@ main {
   align-items: center;
   justify-content: space-between;
   margin-bottom: 18px;
+  gap: 10px;
+  flex-wrap: wrap;
 }
 .player-toolbar h2 {
   margin: 0;
   font-size: 1.4rem;
   color: var(--accent-strong);
+  flex: 1;
+}
+.inject-picker {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  font-size: 0.85rem;
+  color: var(--muted);
+  border: 1px solid var(--border);
+  border-radius: 999px;
+  padding: 4px 10px;
+  background: var(--paper);
+}
+.inject-picker select {
+  border: none;
+  background: transparent;
+  font-family: inherit;
+  font-size: 0.85rem;
+  color: var(--ink);
+  cursor: pointer;
 }
 .player-stage {
   background: var(--paper);
@@ -576,3 +598,98 @@ main {
   .player-stage { padding: 24px 18px; }
 }
 
+
+/* ----- Mini-games ----- */
+.mg-panel {
+  background: linear-gradient(135deg, #fbf3e2 0%, #fff 100%);
+  border: 1px solid var(--border);
+  border-radius: 12px;
+  padding: 20px;
+  margin-bottom: 22px;
+  box-shadow: inset 0 0 0 1px rgba(255,255,255,0.6);
+}
+.mg-head {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-size: 0.95rem;
+  color: var(--accent-strong);
+  margin-bottom: 14px;
+  flex-wrap: wrap;
+}
+.mg-head .mg-icon { font-size: 1.3rem; }
+.mg-head .mg-desc { color: var(--muted); font-weight: 400; font-size: 0.85rem; }
+.mg-body {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 14px;
+  padding: 8px 0;
+}
+.mg-bigface {
+  font-size: 4rem;
+  line-height: 1;
+  user-select: none;
+  font-family: "Apple Color Emoji", "Segoe UI Emoji", system-ui, serif;
+}
+.mg-bigface.red { color: #be123c; }
+.mg-bigface.black { color: #1f2937; }
+.mg-status {
+  font-size: 0.95rem;
+  color: var(--ink);
+  text-align: center;
+  min-height: 1.4em;
+}
+.mg-status.ok { color: #047857; font-weight: 600; }
+.mg-status.bad { color: #b91c1c; font-weight: 600; }
+.mg-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: center;
+}
+.mg-input {
+  border: 1px solid var(--border);
+  border-radius: 8px;
+  padding: 8px 12px;
+  font-size: 1rem;
+  font-family: inherit;
+  background: var(--paper);
+  width: 100px;
+  text-align: center;
+}
+.mg-result {
+  margin-top: 14px;
+  padding: 10px 14px;
+  border-radius: 8px;
+  font-size: 0.9rem;
+  background: #f6e3b8;
+  border-left: 4px solid var(--primary);
+}
+.mg-result.ok { background: #dcfce7; border-left-color: #16a34a; color: #14532d; }
+.mg-result.bad { background: #fee2e2; border-left-color: #dc2626; color: #7f1d1d; }
+
+/* Player choice variants (outcome filtering) */
+.choice-btn.outcome-success { border-left-color: #16a34a; }
+.choice-btn.outcome-failure { border-left-color: #dc2626; }
+
+/* Editor: outcome filter dropdown in choice rows */
+.choice-row.with-outcome {
+  grid-template-columns: 1fr 1fr 120px auto;
+}
+.outcome-select {
+  border: 1px solid var(--border);
+  border-radius: 6px;
+  padding: 6px 8px;
+  font-size: 0.85rem;
+  background: #fbf6ec;
+  font-family: inherit;
+}
+.hint-text-mute {
+  color: var(--muted);
+  font-size: 0.78rem;
+  margin-top: 4px;
+}
+@media (max-width: 600px) {
+  .choice-row.with-outcome { grid-template-columns: 1fr; }
+}

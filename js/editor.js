@@ -23,7 +23,18 @@ window.Editor = (function () {
     els.sceneTitle = document.getElementById("scene-title");
     els.sceneText = document.getElementById("scene-text");
     els.sceneStart = document.getElementById("scene-start");
+    els.sceneMiniGame = document.getElementById("scene-minigame");
     els.choicesList = document.getElementById("choices-list");
+
+    // Populate mini-game options from registry.
+    if (els.sceneMiniGame && window.MiniGames) {
+      MiniGames.list().forEach(g => {
+        const opt = document.createElement("option");
+        opt.value = g.id;
+        opt.textContent = `${g.icon || ""} ${g.name}`.trim();
+        els.sceneMiniGame.appendChild(opt);
+      });
+    }
 
     els.title.addEventListener("input", () => { book.title = els.title.value; markDirty(); });
     els.author.addEventListener("input", () => { book.author = els.author.value; markDirty(); });
@@ -36,6 +47,7 @@ window.Editor = (function () {
     els.sceneTitle.addEventListener("input", onSceneFieldInput);
     els.sceneText.addEventListener("input", onSceneFieldInput);
     els.sceneStart.addEventListener("change", onStartToggle);
+    if (els.sceneMiniGame) els.sceneMiniGame.addEventListener("change", onMiniGameChange);
 
     // Ctrl/Cmd+S → request save (only when editor is visible).
     document.addEventListener("keydown", (e) => {
@@ -177,11 +189,13 @@ window.Editor = (function () {
     els.sceneTitle.value = scene.title || "";
     els.sceneText.value = scene.text || "";
     els.sceneStart.checked = book.startScene === scene.id;
+    if (els.sceneMiniGame) els.sceneMiniGame.value = scene.miniGame || "";
     renderChoices(scene);
   }
 
   function renderChoices(scene) {
     els.choicesList.innerHTML = "";
+    const hasMiniGame = !!scene.miniGame;
     (scene.choices || []).forEach((choice, idx) => {
       const row = document.createElement("div");
       row.className = "choice-row";
@@ -199,6 +213,22 @@ window.Editor = (function () {
           .join("");
       target.addEventListener("change", () => { choice.next = target.value || null; markDirty(); renderSceneList(); });
 
+      let outcome = null;
+      if (hasMiniGame) {
+        outcome = document.createElement("select");
+        outcome.className = "outcome-select";
+        outcome.title = "依小遊戲結果過濾此選項";
+        outcome.innerHTML = `
+          <option value="">不限</option>
+          <option value="success">僅成功時</option>
+          <option value="failure">僅失敗時</option>`;
+        outcome.value = choice.outcome || "";
+        outcome.addEventListener("change", () => {
+          choice.outcome = outcome.value || null;
+          markDirty();
+        });
+      }
+
       const del = document.createElement("button");
       del.className = "ghost-btn small";
       del.textContent = "刪除";
@@ -209,9 +239,19 @@ window.Editor = (function () {
         markDirty();
       });
 
-      row.append(text, target, del);
+      if (outcome) row.append(text, target, outcome, del);
+      else row.append(text, target, del);
+      if (outcome) row.classList.add("with-outcome");
       els.choicesList.appendChild(row);
     });
+  }
+
+  function onMiniGameChange() {
+    const scene = book.scenes[activeSceneId];
+    if (!scene) return;
+    scene.miniGame = els.sceneMiniGame.value || null;
+    renderChoices(scene);
+    markDirty();
   }
 
   function escapeHtml(s) {
